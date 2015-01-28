@@ -125,5 +125,88 @@ public class AttendeeTest {
 				secondTimeSlot);
 
 	}
+	
+	@Test
+	public void findFreeTimeSlots_oneDayPeriodBeginingOfDayAndEndOfDayMeetings_retunsMiddleDayTimeSlot() {
+		Attendee attendee = createAttendee();
+		LocalDate date = LocalDate.of(2000, Month.JANUARY, 1);
+
+		attendee.addMeeting(
+				LocalDateTime.of(date, WORK_DAY_START),
+				LocalDateTime.of(date, WORK_DAY_START).plusHours(2));
+
+		attendee.addMeeting(
+				LocalDateTime.of(date, WORK_DAY_END).minusHours(2),
+				LocalDateTime.of(date, WORK_DAY_END));
+		
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
+				Duration.ofHours(1),
+				LocalDateTime.of(date, WORK_DAY_START),
+				LocalDateTime.of(date, WORK_DAY_END));
+
+		TimeSlot middleDayTimeSlot = new TimeSlot(
+				LocalDateTime.of(date, WORK_DAY_START).plusHours(2),
+				LocalDateTime.of(date, WORK_DAY_END).minusHours(2));
+
+		
+		Assertions.assertThat(timeSlots).containsOnly(middleDayTimeSlot);
+
+	}
+	
+	@Test
+	public void findFreeTimeSlots_oneDayPeriodBeginingOfDayMeetingToLittleFreeTime_retunsEmptyList() {
+		Attendee attendee = createAttendee();
+		LocalDate date = LocalDate.of(2000, Month.JANUARY, 1);
+
+		attendee.addMeeting(
+				LocalDateTime.of(date, WORK_DAY_START),
+				LocalDateTime.of(date, WORK_DAY_END).minusHours(1));
+		
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
+				Duration.ofHours(2),
+				LocalDateTime.of(date, WORK_DAY_START),
+				LocalDateTime.of(date, WORK_DAY_END));
+		
+		Assertions.assertThat(timeSlots).isEmpty();
+	}
+	
+	@Test
+	public void findFreeTimeSlots_oneDayPeriodEndOfDayMeetingToLittleFreeTime_retunsEmptyList() {
+		Attendee attendee = createAttendee();
+		LocalDate date = LocalDate.of(2000, Month.JANUARY, 1);
+
+		attendee.addMeeting(
+				LocalDateTime.of(date, WORK_DAY_START).plusHours(1),
+				LocalDateTime.of(date, WORK_DAY_END));
+		
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
+				Duration.ofHours(2),
+				LocalDateTime.of(date, WORK_DAY_START),
+				LocalDateTime.of(date, WORK_DAY_END));
+		
+		Assertions.assertThat(timeSlots).isEmpty();
+	}
+	
+	@Test
+	public void findFreeTimeSlots_oneDayPeriodBeginingOfDayAndEndOfDayMeetingsToLittleFreeTime_retunsEmptyList() {
+		Attendee attendee = createAttendee();
+		LocalDate date = LocalDate.of(2000, Month.JANUARY, 1);
+
+		attendee.addMeeting(
+				LocalDateTime.of(date, WORK_DAY_START),
+				LocalDateTime.of(date, WORK_DAY_START).plusHours(4));
+
+		attendee.addMeeting(
+				LocalDateTime.of(date, WORK_DAY_END).minusHours(3),
+				LocalDateTime.of(date, WORK_DAY_END));
+		
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
+				Duration.ofHours(1),
+				LocalDateTime.of(date, WORK_DAY_START),
+				LocalDateTime.of(date, WORK_DAY_END));
+
+		Assertions.assertThat(timeSlots).isEmpty();
+
+	}
 
 }
