@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
@@ -14,71 +13,90 @@ import org.junit.Test;
 
 public class SchedulerTest {
 
+	LocalDate date = LocalDate.of(2000, Month.JANUARY, 1);
+
+	LocalDateTime periodStart = LocalDateTime.of(date, LocalTime.MIN);
+	LocalDateTime periodEnd = LocalDateTime.of(date, LocalTime.MAX);
+
 	private Attendee john;
+
+	private Attendee jane;
+	
+	private Attendee jack;
 
 	@Before
 	public void setup() {
+		// john: --------
 		john = new Attendee("john", LocalTime.of(7, 0), LocalTime.of(15, 0));
+
+		// jane: ----xxxx
+		jane = new Attendee("jane", LocalTime.of(7, 0), LocalTime.of(15, 0));
+		jane.addMeeting(
+				LocalDateTime.of(date, jane.getWorkDayStart().plusHours(4)),
+				LocalDateTime.of(date, jane.getWorkDayEnd()));
+		// jack: --xx----<<
+		jack = new Attendee("jack", LocalTime.of(5, 0), LocalTime.of(13, 0));
+		jack.addMeeting(
+				LocalDateTime.of(date, LocalTime.of(7, 0)),
+				LocalDateTime.of(date, LocalTime.of(9, 0)));
 	}
 
 	@Test
-	public void findPossibleTimeSlots_oneAtendeeWithoutMeetings_returnsOkStatus() {
+	public void findPossibleTimeSlots_oneAtendeeWithOneFreeSlot_returnsThatSlot() {
+
 		Scheduler scheduler = new Scheduler();
-		List<Attendee> attendees = new ArrayList<>();
-		attendees.add(john);
-		Duration meettingLength = Duration.ofHours(1);
-		LocalDate date = LocalDate.of(2015, Month.JANUARY, 1);
-		LocalDateTime timeFrameStart = LocalDateTime.of(date, LocalTime.of(0, 0));
-		LocalDateTime timeFrameEnd = LocalDateTime.of(date, LocalTime.of(23,59));
+		scheduler.add(john);
 
-		TimeSlots possibleTimeSlots = scheduler.findPossibleTimeSlots(
-				attendees, meettingLength, timeFrameStart, timeFrameEnd);
+		List<TimeSlot> possibleTimeSlots = scheduler.findPossibleTimeSlots(
+				Duration.ofHours(1),
+				periodStart,
+				periodEnd);
 
-		Assertions.assertThat(possibleTimeSlots.getStatus()).isEqualTo(
-				OperationStatus.OK);
-
+		LocalDateTime workDayStart = LocalDateTime.of(date,
+				john.getWorkDayStart());
+		LocalDateTime workDayEnd = LocalDateTime.of(date, john.getWorkDayEnd());
+		TimeSlot expectedTimeSlot = new TimeSlot(workDayStart, workDayEnd);
+		Assertions.assertThat(possibleTimeSlots).containsOnly(expectedTimeSlot);
 	}
 
 	@Test
-	public void findPossibleTimeSlots_oneAtendeeWithWholeDayMeeting_returnsNotFoundStatus() {
+	public void findPossibleTimeSlots_requiredJohnAndJane_returnsFirstHalfOfDaySlot() {
+
 		Scheduler scheduler = new Scheduler();
-		List<Attendee> attendees = new ArrayList<>();
-		LocalDate date = LocalDate.of(2015, Month.JANUARY, 1);
+		scheduler.add(jane);
+		scheduler.add(john);
 
-		john.addMeeting(LocalDateTime.of(date,john.getWorkDayStart()),
-				LocalDateTime.of(date,john.getWorkDayEnd()));
-		attendees.add(john);
-		Duration meettingLength = Duration.ofHours(1);
-		LocalDateTime timeFrameStart = LocalDateTime.of(date, LocalTime.of(0, 0));
-		LocalDateTime timeFrameEnd = LocalDateTime.of(date, LocalTime.of(23,59));
+		List<TimeSlot> possibleTimeSlots = scheduler.findPossibleTimeSlots(
+				Duration.ofHours(1),
+				periodStart,
+				periodEnd);
 
-		TimeSlots possibleTimeSlots = scheduler.findPossibleTimeSlots(
-				attendees, meettingLength, timeFrameStart, timeFrameEnd);
-
-		Assertions.assertThat(possibleTimeSlots.getStatus()).isEqualTo(
-				OperationStatus.NOT_FOUND);
-
+		LocalDateTime workDayStart = LocalDateTime.of(date,
+				john.getWorkDayStart());
+		LocalDateTime workDayEnd = LocalDateTime.of(date, john.getWorkDayEnd());
+		TimeSlot expectedTimeSlot = new TimeSlot(workDayStart,
+				workDayEnd.minusHours(4));
+		Assertions.assertThat(possibleTimeSlots).containsOnly(expectedTimeSlot);
 	}
 	
 	@Test
-	public void findPossibleTimeSlots_oneAtendeeWithHalfDayMeeting_returnsOkStatus() {
+	public void findPossibleTimeSlots_requiredJohnAndJaneAndJack_returnsValidSlot() {
+
 		Scheduler scheduler = new Scheduler();
-		List<Attendee> attendees = new ArrayList<>();
-		LocalDate date = LocalDate.of(2015, Month.JANUARY, 1);
+		scheduler.add(jane);
+		scheduler.add(john);
+		scheduler.add(jack);
 
-		john.addMeeting(LocalDateTime.of(date,john.getWorkDayStart()),
-				LocalDateTime.of(date,john.getWorkDayStart().plusHours(4)));
-		attendees.add(john);
-		Duration meettingLength = Duration.ofHours(1);
-		LocalDateTime timeFrameStart = LocalDateTime.of(date, LocalTime.of(0, 0));
-		LocalDateTime timeFrameEnd = LocalDateTime.of(date, LocalTime.of(23,59));
+		List<TimeSlot> possibleTimeSlots = scheduler.findPossibleTimeSlots(
+				Duration.ofHours(1),
+				periodStart,
+				periodEnd);
 
-		TimeSlots possibleTimeSlots = scheduler.findPossibleTimeSlots(
-				attendees, meettingLength, timeFrameStart, timeFrameEnd);
-
-		Assertions.assertThat(possibleTimeSlots.getStatus()).isEqualTo(
-				OperationStatus.OK);
-
+		TimeSlot expectedTimeSlot = new TimeSlot(
+				LocalDateTime.of(date,LocalTime.of(9, 0)),
+				LocalDateTime.of(date,LocalTime.of(11, 0)));
+		Assertions.assertThat(possibleTimeSlots).containsOnly(expectedTimeSlot);
 	}
+
 
 }
