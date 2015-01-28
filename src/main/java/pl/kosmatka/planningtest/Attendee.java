@@ -1,6 +1,7 @@
 package pl.kosmatka.planningtest;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -37,39 +38,54 @@ public class Attendee {
 
 	public List<TimeSlot> findFreeTimeSlots(Duration duration,
 			LocalDateTime begin, LocalDateTime end) {
-		LocalDateTime currentWorkDayStart = LocalDateTime.of(begin.toLocalDate(), workDayStart);
-		LocalDateTime currentWorkDayEnd = LocalDateTime.of(end.toLocalDate(), workDayEnd);
-		if (!hasMeetings()) {
-			return Collections.singletonList(new TimeSlot(currentWorkDayStart, currentWorkDayEnd));
-		}
+
 		List<TimeSlot> timeSlots = new ArrayList<TimeSlot>();
 
-		
-		if (scheduledMeetings.last().getEnd().isBefore(currentWorkDayEnd)) {
-			LocalDateTime timeSlotStart = scheduledMeetings
-					.last().getEnd();
-			LocalDateTime timeSlotEnd = currentWorkDayEnd;
-			addTimeSlotIfBigEnough(duration, timeSlots, timeSlotStart,
-					timeSlotEnd);
-		}
+		for (LocalDate currentDate = begin.toLocalDate(); currentDate.minusDays(
+				1).isBefore(end.toLocalDate()); currentDate = currentDate
+				.plusDays(1)) {
+			LocalDateTime currentWorkDayStart = LocalDateTime.of(currentDate,
+					workDayStart);
+			LocalDateTime currentWorkDayEnd = LocalDateTime.of(currentDate,
+					workDayEnd);
+			SortedSet<TimeSlot> currentDayMeetings = scheduledMeetings.subSet(
+					new TimeSlot(currentWorkDayStart, currentWorkDayStart), 
+					new TimeSlot(currentWorkDayEnd, currentWorkDayEnd));
+			
+			if (currentDayMeetings.isEmpty()) {
+				timeSlots.add(
+						new TimeSlot(currentWorkDayStart, currentWorkDayEnd));
+				continue;
+			}
 
-		if (scheduledMeetings.first().getBegin().isAfter(currentWorkDayStart)) {
-			LocalDateTime timeSlotStart = currentWorkDayStart;
-			LocalDateTime timeSlotEnd = scheduledMeetings.first().getBegin();
-			addTimeSlotIfBigEnough(duration, timeSlots, timeSlotStart,
-					timeSlotEnd);
-		}
+			if (currentDayMeetings.last().getEnd().isBefore(currentWorkDayEnd)) {
+				LocalDateTime timeSlotStart = currentDayMeetings
+						.last().getEnd();
+				LocalDateTime timeSlotEnd = currentWorkDayEnd;
+				addTimeSlotIfBigEnough(duration, timeSlots, timeSlotStart,
+						timeSlotEnd);
+			}
 
-		Iterator<TimeSlot> iterator = scheduledMeetings.iterator();
-		TimeSlot currentMeeting = iterator.next();
+			if (currentDayMeetings.first().getBegin()
+					.isAfter(currentWorkDayStart)) {
+				LocalDateTime timeSlotStart = currentWorkDayStart;
+				LocalDateTime timeSlotEnd = currentDayMeetings.first()
+						.getBegin();
+				addTimeSlotIfBigEnough(duration, timeSlots, timeSlotStart,
+						timeSlotEnd);
+			}
 
-		while (iterator.hasNext()) {
-			TimeSlot nextMeeting = iterator.next();
-			LocalDateTime timeSlotStart = currentMeeting.getEnd();
-			LocalDateTime timeSlotEnd = nextMeeting.getBegin();
-			addTimeSlotIfBigEnough(duration, timeSlots, timeSlotStart,
-					timeSlotEnd);
-			currentMeeting = nextMeeting;
+			Iterator<TimeSlot> iterator = currentDayMeetings.iterator();
+			TimeSlot currentMeeting = iterator.next();
+
+			while (iterator.hasNext()) {
+				TimeSlot nextMeeting = iterator.next();
+				LocalDateTime timeSlotStart = currentMeeting.getEnd();
+				LocalDateTime timeSlotEnd = nextMeeting.getBegin();
+				addTimeSlotIfBigEnough(duration, timeSlots, timeSlotStart,
+						timeSlotEnd);
+				currentMeeting = nextMeeting;
+			}
 		}
 
 		return timeSlots;

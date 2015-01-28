@@ -244,4 +244,80 @@ public class AttendeeTest {
 
 	}
 	
+	@Test
+	public void findFreeTimeSlots_twoFullDaysPeriodNoMeeting_retunsTimeSlotsForEachWholeWorkingDay() {
+		Attendee attendee = createAttendee();
+		LocalDate beginDate = LocalDate.of(2000, Month.JANUARY, 1);
+		LocalDate endDate = beginDate.plusDays(1);
+
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
+				Duration.ofHours(1),
+				LocalDateTime.of(beginDate, LocalTime.MIN),
+				LocalDateTime.of(endDate, LocalTime.MAX));
+
+		TimeSlot firstWorkingDayTimeSlot = new TimeSlot(
+				LocalDateTime.of(beginDate, WORK_DAY_START),
+				LocalDateTime.of(beginDate, WORK_DAY_END));
+		TimeSlot secondWorkingDayTimeSlot = new TimeSlot(
+				LocalDateTime.of(endDate, WORK_DAY_START),
+				LocalDateTime.of(endDate, WORK_DAY_END));
+
+		Assertions.assertThat(timeSlots).containsOnly(
+				firstWorkingDayTimeSlot,
+				secondWorkingDayTimeSlot);
+
+	}
+	
+	@Test
+	public void findFreeTimeSlots_twoFullDaysPeriodFirstWholeDayMeeting_retunsTimeSlotForWholeSecondWorkingDay() {
+		Attendee attendee = createAttendee();
+		LocalDate beginDate = LocalDate.of(2000, Month.JANUARY, 1);
+		LocalDate endDate = beginDate.plusDays(1);
+		
+		attendee.addMeeting(
+				LocalDateTime.of(beginDate, WORK_DAY_START), 
+				LocalDateTime.of(beginDate, WORK_DAY_END));
+
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
+				Duration.ofHours(1),
+				LocalDateTime.of(beginDate, LocalTime.MIN),
+				LocalDateTime.of(endDate, LocalTime.MAX));
+		
+		TimeSlot secondWorkingDayTimeSlot = new TimeSlot(
+				LocalDateTime.of(endDate, WORK_DAY_START),
+				LocalDateTime.of(endDate, WORK_DAY_END));
+
+		Assertions.assertThat(timeSlots).containsOnly(
+				secondWorkingDayTimeSlot);
+
+	}
+	
+	@Test
+	public void findFreeTimeSlots_twoFullDaysPeriodSecondWholeDayMeeting_retunsTimeSlotForWholeFirstWorkingDay() {
+		Attendee attendee = createAttendee();
+		LocalDate beginDate = LocalDate.of(2000, Month.JANUARY, 1);
+		LocalDate endDate = beginDate.plusDays(1);
+		
+		attendee.addMeeting(
+				LocalDateTime.of(endDate, WORK_DAY_START), 
+				LocalDateTime.of(endDate, WORK_DAY_END));
+
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
+				Duration.ofHours(1),
+				LocalDateTime.of(beginDate, LocalTime.MIN),
+				LocalDateTime.of(endDate, LocalTime.MAX));
+		
+		TimeSlot firstWorkingDayTimeSlot = new TimeSlot(
+				LocalDateTime.of(beginDate, WORK_DAY_START),
+				LocalDateTime.of(beginDate, WORK_DAY_END));
+
+		Assertions.assertThat(timeSlots).containsOnly(
+				firstWorkingDayTimeSlot);
+
+	}
+	
+	
+	// TODO: working hours at night
+	// TODO: period starts or ends in the middle of working hours
+	
 }
