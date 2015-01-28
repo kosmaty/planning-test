@@ -32,10 +32,6 @@ public class Attendee {
 
 	}
 
-	public boolean hasMeetings() {
-		return !scheduledMeetings.isEmpty();
-	}
-
 	public List<TimeSlot> findFreeTimeSlots(Duration duration,
 			LocalDateTime begin, LocalDateTime end) {
 
