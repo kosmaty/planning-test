@@ -37,21 +37,24 @@ public class Attendee {
 
 	public List<TimeSlot> findFreeTimeSlots(Duration duration,
 			LocalDateTime begin, LocalDateTime end) {
+		LocalDateTime currentWorkDayStart = LocalDateTime.of(begin.toLocalDate(), workDayStart);
+		LocalDateTime currentWorkDayEnd = LocalDateTime.of(end.toLocalDate(), workDayEnd);
 		if (!hasMeetings()) {
-			return Collections.singletonList(new TimeSlot(begin, end));
+			return Collections.singletonList(new TimeSlot(currentWorkDayStart, currentWorkDayEnd));
 		}
 		List<TimeSlot> timeSlots = new ArrayList<TimeSlot>();
 
-		if (scheduledMeetings.last().getEnd().isBefore(end)) {
+		
+		if (scheduledMeetings.last().getEnd().isBefore(currentWorkDayEnd)) {
 			LocalDateTime timeSlotStart = scheduledMeetings
 					.last().getEnd();
-			LocalDateTime timeSlotEnd = end;
+			LocalDateTime timeSlotEnd = currentWorkDayEnd;
 			addTimeSlotIfBigEnough(duration, timeSlots, timeSlotStart,
 					timeSlotEnd);
 		}
 
-		if (scheduledMeetings.first().getBegin().isAfter(begin)) {
-			LocalDateTime timeSlotStart = begin;
+		if (scheduledMeetings.first().getBegin().isAfter(currentWorkDayStart)) {
+			LocalDateTime timeSlotStart = currentWorkDayStart;
 			LocalDateTime timeSlotEnd = scheduledMeetings.first().getBegin();
 			addTimeSlotIfBigEnough(duration, timeSlots, timeSlotStart,
 					timeSlotEnd);
