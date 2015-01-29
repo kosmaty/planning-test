@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 public class Attendee {
 
 	private String name;
@@ -103,6 +105,11 @@ public class Attendee {
 
 	public LocalTime getWorkDayEnd() {
 		return workDayEnd;
+	}
+	
+	@Override
+	public String toString() {
+		return new ToStringBuilder(this).append(name).toString();
 	}
 
 }
