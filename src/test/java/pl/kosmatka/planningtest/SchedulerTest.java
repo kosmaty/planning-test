@@ -69,7 +69,7 @@ public class SchedulerTest {
 				john.getWorkDayStart());
 		LocalDateTime workDayEnd = LocalDateTime.of(date, john.getWorkDayEnd());
 		ResultTimeSlot expectedTimeSlot = new ResultTimeSlot(workDayStart,
-				workDayEnd, 
+				workDayEnd,
 				Collections.singleton(john));
 		assertThat(result).hasTimeSlots(expectedTimeSlot);
 	}
@@ -114,6 +114,26 @@ public class SchedulerTest {
 				LocalDateTime.of(date, LocalTime.of(9, 0)),
 				LocalDateTime.of(date, LocalTime.of(11, 0)),
 				new HashSet<>(Arrays.asList(jane, jack, john)));
+		assertThat(result).hasTimeSlots(expectedTimeSlot)
+				.hasStatus(SchedulerResultStatus.OK);
+	}
+
+	@Test
+	public void findPossibleTimeSlots_requiredJohnAndJill_returnsSlotWithOnlyJohnAsAttendee() {
+
+		Scheduler scheduler = new Scheduler();
+		scheduler.add(john);
+		scheduler.add(jill);
+
+		SchedulerResult result = scheduler.findPossibleTimeSlots1(
+				Duration.ofHours(1),
+				periodStart,
+				periodEnd);
+
+		ResultTimeSlot expectedTimeSlot = new ResultTimeSlot(
+				LocalDateTime.of(date, LocalTime.of(7, 0)),
+				LocalDateTime.of(date, LocalTime.of(15, 0)),
+				new HashSet<>(Arrays.asList(john)));
 		assertThat(result).hasTimeSlots(expectedTimeSlot);
 	}
 
