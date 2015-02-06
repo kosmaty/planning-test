@@ -3,13 +3,9 @@ package pl.kosmatka.planningtest;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 public class Scheduler {
@@ -22,37 +18,61 @@ public class Scheduler {
 
 	public SchedulerResult findPossibleTimeSlots(Duration duration,
 			LocalDateTime begin, LocalDateTime end) {
-		
-		List<ResultTimeSlot> possibleTimeSlots = findBestTimeSlots(duration, begin, end);
-		
+
+		List<ResultTimeSlot> possibleTimeSlots = findBestTimeSlots(
+				duration, begin, end);
+
+		SchedulerResultStatus status = calculateStatus(possibleTimeSlots);
+		return new SchedulerResult(possibleTimeSlots, status);
+	}
+
+	private SchedulerResultStatus calculateStatus(
+			List<ResultTimeSlot> possibleTimeSlots) {
 		SchedulerResultStatus status = SchedulerResultStatus.OK;
-		if (!possibleTimeSlots.isEmpty()){
-			if (possibleTimeSlots.get(0).attendeesCount() < attendees.size()){
-				status = SchedulerResultStatus.NOT_OK;
-			}
-		}else {
+		if (!possibleTimeSlots.isEmpty() && 
+				possibleTimeSlots.get(0).attendeesCount() == attendees.size()) {
+			status = SchedulerResultStatus.OK;
+		} else {
 			status = SchedulerResultStatus.NOT_OK;
 		}
-		return new SchedulerResult(possibleTimeSlots,
-				status);
+		return status;
 	}
 
 	private List<ResultTimeSlot> findBestTimeSlots(Duration duration,
 			LocalDateTime begin, LocalDateTime end) {
 
-		List<Event> events = new ArrayList<Event>();
-		for (Attendee attendee : attendees) {
-			for (TimeSlot timeSlot : attendee.findFreeTimeSlots(duration,
-					begin, end)) {
-				events.add(new Event(timeSlot.getBegin(), attendee,
-						EventType.PERIOD_BEGIN));
-				events.add(new Event(timeSlot.getEnd(), attendee,
-						EventType.PERIOD_END));
+		List<Event> events = prepareEvents(duration, begin, end);
+
+		List<ResultTimeSlot> baseTimeSlots = createTimeSlotsFrom(events);
+
+		List<ResultTimeSlot> resultTimeSlots = findResultTimeSlots(duration,
+				baseTimeSlots);
+
+		return resultTimeSlots;
+	}
+
+	private List<ResultTimeSlot> findResultTimeSlots(Duration duration,
+			List<ResultTimeSlot> baseTimeSlots) {
+		List<ResultTimeSlot> resultTimeSlots = new ArrayList<ResultTimeSlot>();
+
+		
+		while (resultTimeSlots.isEmpty() && !baseTimeSlots.isEmpty()) {
+			resultTimeSlots = findTimeSlotsOfDuration(baseTimeSlots, duration);
+			
+
+			if (resultTimeSlots.isEmpty()) {
+				baseTimeSlots = mergeTimeSlotsWithMostAttendees(baseTimeSlots);
+			} else {
+				int maxAttendees = maxAttendeesCountOf(resultTimeSlots);
+				resultTimeSlots = resultTimeSlots.stream()
+						.filter(x -> x.attendeesCount() == maxAttendees)
+						.collect(Collectors.toList());
 			}
 		}
+		return resultTimeSlots;
+	}
 
-		events.sort((x, y) -> x.time.compareTo(y.time));
-
+	private List<ResultTimeSlot> createTimeSlotsFrom(List<Event> events) {
 		Set<Attendee> previousAttendees = new HashSet<Attendee>();
 		Event previousEvent = null;
 		List<ResultTimeSlot> items = new ArrayList<ResultTimeSlot>();
@@ -71,45 +91,58 @@ public class Scheduler {
 			previousEvent = event;
 			previousAttendees = attendees;
 		}
+		return items;
+	}
 
-		List<ResultTimeSlot> resultTimeSlots = new ArrayList<ResultTimeSlot>();
-
-		while (resultTimeSlots.isEmpty() && !items.isEmpty()) {
-			resultTimeSlots = findTimeSlotsOfDuration(items, duration);
-			int maxAttendees = resultTimeSlots.stream()
-					.mapToInt(x -> x.attendeesCount()).max().orElse(0);
-			resultTimeSlots = resultTimeSlots.stream()
-					.filter(x -> x.attendeesCount() == maxAttendees)
-					.collect(Collectors.toList());
-
-			if (resultTimeSlots.isEmpty()) {
-				items = mergeTimeSlotsWithMostAttendees(items);
+	private List<Event> prepareEvents(Duration duration, LocalDateTime begin,
+			LocalDateTime end) {
+		List<Event> events = new ArrayList<Event>();
+		for (Attendee attendee : attendees) {
+			for (TimeSlot timeSlot : attendee.findFreeTimeSlots(duration,
+					begin, end)) {
+				events.add(new Event(timeSlot.getBegin(), attendee,
+						EventType.PERIOD_BEGIN));
+				events.add(new Event(timeSlot.getEnd(), attendee,
+						EventType.PERIOD_END));
 			}
 		}
 
-
-		return resultTimeSlots;
+		events.sort((x, y) -> x.time.compareTo(y.time));
+		return events;
 	}
 
 	private List<ResultTimeSlot> mergeTimeSlotsWithMostAttendees(
-			List<ResultTimeSlot> items) {
-		int maxAttendee = items.stream().mapToInt(x -> x.attendeesCount())
-				.max().orElse(0);
-		if (maxAttendee == 0) {
-			return Collections.emptyList();
-		}
+			List<ResultTimeSlot> timeSlots) {
+		int maxAttendees = maxAttendeesCountOf(timeSlots);
 
 		List<ResultTimeSlot> resultItems = new ArrayList<>();
-		for (int i = 0; i < items.size(); i++) {
-			ResultTimeSlot currentItem = items.get(i);
-			if (currentItem.attendeesCount() < maxAttendee - 1
-					|| i + 1 == items.size()) {
+		for (int i = 0; i < timeSlots.size(); i++) {
+			ResultTimeSlot currentItem = timeSlots.get(i);
+			if (shouldMerge(maxAttendees, currentItem)
+					|| isLastTimeSlot(timeSlots, i)) {
 				resultItems.add(currentItem);
 			} else {
-				resultItems.add(mergeItems(currentItem, items.get(i + 1)));
+				resultItems.add(mergeItems(currentItem, nextTimeSlot(timeSlots, i)));
 			}
 		}
 		return resultItems;
+	}
+
+	private ResultTimeSlot nextTimeSlot(List<ResultTimeSlot> timeSlots, int i) {
+		return timeSlots.get(i + 1);
+	}
+
+	private boolean shouldMerge(int maxAttendees, ResultTimeSlot currentItem) {
+		return currentItem.attendeesCount() < maxAttendees - 1;
+	}
+
+	private boolean isLastTimeSlot(List<ResultTimeSlot> timeSlots, int i) {
+		return i + 1 == timeSlots.size();
+	}
+
+	private int maxAttendeesCountOf(List<ResultTimeSlot> timeSlots) {
+		return timeSlots.stream().mapToInt(x -> x.attendeesCount())
+				.max().orElse(0);
 	}
 
 	private ResultTimeSlot mergeItems(ResultTimeSlot currentItem,
@@ -159,20 +192,5 @@ enum EventType {
 	PERIOD_BEGIN,
 
 	PERIOD_END;
-
-}
-
-class Item {
-	LocalDateTime start;
-
-	LocalDateTime end;
-	Set<Attendee> attendees;
-
-	public Item(LocalDateTime start, LocalDateTime end, Set<Attendee> attendees) {
-		super();
-		this.start = start;
-		this.end = end;
-		this.attendees = attendees;
-	}
 
 }

@@ -35,14 +35,6 @@ public class Attendee {
 
 	}
 
-	public List<ResultTimeSlot> findFreeResultTimeSlots(Duration duration,
-			LocalDateTime begin, LocalDateTime end) {
-		return findFreeTimeSlots(duration, begin, end)
-				.stream()
-				.map((timeSlot) -> (new ResultTimeSlot(timeSlot, this)))
-				.collect(Collectors.toList());
-	}
-
 	public List<TimeSlot> findFreeTimeSlots(Duration duration,
 			LocalDateTime begin, LocalDateTime end) {
 
