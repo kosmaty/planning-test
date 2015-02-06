@@ -28,6 +28,12 @@ public class SchedulerResultAssert extends
 		return this;
 	}
 	
+	public SchedulerResultAssert hasNoTimeSlots(){
+		isNotNull();
+		Assertions.assertThat(actual.getResultTimeSlots()).isEmpty();
+		return this;
+	}
+	
 	public SchedulerResultAssert hasStatus(SchedulerResultStatus status){
 		isNotNull();
 		Assertions.assertThat(actual.getStatus()).isEqualTo(status);

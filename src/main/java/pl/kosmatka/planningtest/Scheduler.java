@@ -24,8 +24,17 @@ public class Scheduler {
 			LocalDateTime begin, LocalDateTime end) {
 		
 		List<ResultTimeSlot> possibleTimeSlots = findBestTimeSlots(duration, begin, end);
+		
+		SchedulerResultStatus status = SchedulerResultStatus.OK;
+		if (!possibleTimeSlots.isEmpty()){
+			if (possibleTimeSlots.get(0).attendeesCount() < attendees.size()){
+				status = SchedulerResultStatus.NOT_OK;
+			}
+		}else {
+			status = SchedulerResultStatus.NOT_OK;
+		}
 		return new SchedulerResult(possibleTimeSlots,
-				SchedulerResultStatus.OK);
+				status);
 	}
 
 	private List<ResultTimeSlot> findBestTimeSlots(Duration duration,

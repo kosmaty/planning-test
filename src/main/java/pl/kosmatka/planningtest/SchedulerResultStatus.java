@@ -2,6 +2,8 @@ package pl.kosmatka.planningtest;
 
 public enum SchedulerResultStatus {
 	
-	OK
+	OK,
+	
+	NOT_OK
 
 }

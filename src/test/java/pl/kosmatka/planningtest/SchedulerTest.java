@@ -83,7 +83,7 @@ public class SchedulerTest {
 		ResultTimeSlot expectedTimeSlot = new ResultTimeSlot(workDayStart,
 				workDayEnd,
 				Collections.singleton(john));
-		assertThat(result).hasTimeSlots(expectedTimeSlot);
+		assertThat(result).hasTimeSlots(expectedTimeSlot).hasStatus(SchedulerResultStatus.OK);
 	}
 
 	@Test
@@ -146,7 +146,7 @@ public class SchedulerTest {
 				LocalDateTime.of(date, LocalTime.of(7, 0)),
 				LocalDateTime.of(date, LocalTime.of(15, 0)),
 				new HashSet<>(Arrays.asList(john)));
-		assertThat(result).hasTimeSlots(expectedTimeSlot);
+		assertThat(result).hasTimeSlots(expectedTimeSlot).hasStatus(SchedulerResultStatus.NOT_OK);
 	}
 	@Test
 	public void findPossibleTimeSlots_requiredJohnAndJaneAndJill_returnsSlotWithOnlyJohnAndJaneAsAttendees() {
@@ -165,7 +165,7 @@ public class SchedulerTest {
 				LocalDateTime.of(date, LocalTime.of(7, 0)),
 				LocalDateTime.of(date, LocalTime.of(11, 0)),
 				new HashSet<>(Arrays.asList(john, jane)));
-		assertThat(result).hasTimeSlots(expectedTimeSlot);
+		assertThat(result).hasTimeSlots(expectedTimeSlot).hasStatus(SchedulerResultStatus.NOT_OK);
 	}
 	
 	@Test
@@ -188,7 +188,7 @@ public class SchedulerTest {
 				LocalDateTime.of(date, LocalTime.of(7, 0)),
 				LocalDateTime.of(date, LocalTime.of(11, 0)),
 				new HashSet<>(Arrays.asList(jane)));
-		assertThat(result).hasTimeSlots(expectedTimeSlot1, expectedTimeSlot2);
+		assertThat(result).hasTimeSlots(expectedTimeSlot1, expectedTimeSlot2).hasStatus(SchedulerResultStatus.NOT_OK);
 	}
 	
 	@Test
@@ -208,7 +208,22 @@ public class SchedulerTest {
 				LocalDateTime.of(date, LocalTime.of(15, 0)),
 				new HashSet<>(Arrays.asList(john)));
 		
-		assertThat(result).hasTimeSlots(expectedTimeSlot);
+		assertThat(result).hasTimeSlots(expectedTimeSlot).hasStatus(SchedulerResultStatus.NOT_OK);
+	}
+	
+	@Test
+	public void findPossibleTimeSlots_requiredJill_returnsResultWithNoTimeSlots() {
+
+		Scheduler scheduler = new Scheduler();
+		scheduler.add(jill);
+
+		SchedulerResult result = scheduler.findPossibleTimeSlots(
+				Duration.ofHours(1),
+				periodStart,
+				periodEnd);
+
+		
+		assertThat(result).hasNoTimeSlots().hasStatus(SchedulerResultStatus.NOT_OK);
 	}
 
 }
