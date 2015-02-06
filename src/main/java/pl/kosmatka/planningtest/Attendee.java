@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -34,22 +35,31 @@ public class Attendee {
 
 	}
 
+	public List<ResultTimeSlot> findFreeResultTimeSlots(Duration duration,
+			LocalDateTime begin, LocalDateTime end) {
+		return findFreeTimeSlots(duration, begin, end)
+				.stream()
+				.map((timeSlot) -> (new ResultTimeSlot(timeSlot, this)))
+				.collect(Collectors.toList());
+	}
+
 	public List<TimeSlot> findFreeTimeSlots(Duration duration,
 			LocalDateTime begin, LocalDateTime end) {
 
 		List<TimeSlot> timeSlots = new ArrayList<TimeSlot>();
 
-		for (LocalDate currentDate = begin.toLocalDate(); currentDate.minusDays(
-				1).isBefore(end.toLocalDate()); currentDate = currentDate
+		for (LocalDate currentDate = begin.toLocalDate(); currentDate
+				.minusDays(
+						1).isBefore(end.toLocalDate()); currentDate = currentDate
 				.plusDays(1)) {
 			LocalDateTime currentWorkDayStart = LocalDateTime.of(currentDate,
 					workDayStart);
 			LocalDateTime currentWorkDayEnd = LocalDateTime.of(currentDate,
 					workDayEnd);
 			SortedSet<TimeSlot> currentDayMeetings = scheduledMeetings.subSet(
-					new TimeSlot(currentWorkDayStart, currentWorkDayStart), 
+					new TimeSlot(currentWorkDayStart, currentWorkDayStart),
 					new TimeSlot(currentWorkDayEnd, currentWorkDayEnd));
-			
+
 			if (currentDayMeetings.isEmpty()) {
 				timeSlots.add(
 						new TimeSlot(currentWorkDayStart, currentWorkDayEnd));
@@ -94,7 +104,7 @@ public class Attendee {
 			List<TimeSlot> timeSlots, LocalDateTime timeSlotStart,
 			LocalDateTime timeSlotEnd) {
 		if (Duration.between(timeSlotStart, timeSlotEnd)
-				.compareTo(duration) > 0) {
+				.compareTo(duration) >= 0) {
 			timeSlots.add(new TimeSlot(timeSlotStart, timeSlotEnd));
 		}
 	}
@@ -106,7 +116,7 @@ public class Attendee {
 	public LocalTime getWorkDayEnd() {
 		return workDayEnd;
 	}
-	
+
 	@Override
 	public String toString() {
 		return new ToStringBuilder(this).append(name).toString();

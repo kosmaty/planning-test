@@ -1,5 +1,6 @@
 package pl.kosmatka.planningtest;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Set;
@@ -67,6 +68,10 @@ public class ResultTimeSlot {
 		return attendees;
 	}
 
+	public int attendeesCount() {
+		return attendees.size();
+	}
+
 	@Override
 	public String toString() {
 		return new ToStringBuilder(this)
@@ -74,5 +79,9 @@ public class ResultTimeSlot {
 				.append(attendees)
 				.toString();
 	}
-	
+
+	public boolean lastsAtLeast(Duration duration) {
+		return internalTimeSlot.lastsAtLeast(duration);
+	}
+
 }

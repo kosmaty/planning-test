@@ -23,12 +23,24 @@ public class SchedulerTest {
 	LocalDateTime periodStart = LocalDateTime.of(date, LocalTime.MIN);
 	LocalDateTime periodEnd = LocalDateTime.of(date, LocalTime.MAX);
 
+	/**
+	 * XX--------
+	 */
 	private Attendee john;
 
+	/**
+	 * XX----xxxx
+	 */
 	private Attendee jane;
 
+	/**
+	 * --xx----XX
+	 */
 	private Attendee jack;
 
+	/**
+	 * XXxxxxxxxx
+	 */
 	private Attendee jill;
 
 	@Before
@@ -60,7 +72,7 @@ public class SchedulerTest {
 		Scheduler scheduler = new Scheduler();
 		scheduler.add(john);
 
-		SchedulerResult result = scheduler.findPossibleTimeSlots1(
+		SchedulerResult result = scheduler.findPossibleTimeSlots(
 				Duration.ofHours(1),
 				periodStart,
 				periodEnd);
@@ -81,7 +93,7 @@ public class SchedulerTest {
 		scheduler.add(jane);
 		scheduler.add(john);
 
-		SchedulerResult result = scheduler.findPossibleTimeSlots1(
+		SchedulerResult result = scheduler.findPossibleTimeSlots(
 				Duration.ofHours(1),
 				periodStart,
 				periodEnd);
@@ -105,7 +117,7 @@ public class SchedulerTest {
 		scheduler.add(john);
 		scheduler.add(jack);
 
-		SchedulerResult result = scheduler.findPossibleTimeSlots1(
+		SchedulerResult result = scheduler.findPossibleTimeSlots(
 				Duration.ofHours(1),
 				periodStart,
 				periodEnd);
@@ -125,7 +137,7 @@ public class SchedulerTest {
 		scheduler.add(john);
 		scheduler.add(jill);
 
-		SchedulerResult result = scheduler.findPossibleTimeSlots1(
+		SchedulerResult result = scheduler.findPossibleTimeSlots(
 				Duration.ofHours(1),
 				periodStart,
 				periodEnd);
@@ -134,6 +146,68 @@ public class SchedulerTest {
 				LocalDateTime.of(date, LocalTime.of(7, 0)),
 				LocalDateTime.of(date, LocalTime.of(15, 0)),
 				new HashSet<>(Arrays.asList(john)));
+		assertThat(result).hasTimeSlots(expectedTimeSlot);
+	}
+	@Test
+	public void findPossibleTimeSlots_requiredJohnAndJaneAndJill_returnsSlotWithOnlyJohnAndJaneAsAttendees() {
+
+		Scheduler scheduler = new Scheduler();
+		scheduler.add(john);
+		scheduler.add(jill);
+		scheduler.add(jane);
+
+		SchedulerResult result = scheduler.findPossibleTimeSlots(
+				Duration.ofHours(1),
+				periodStart,
+				periodEnd);
+
+		ResultTimeSlot expectedTimeSlot = new ResultTimeSlot(
+				LocalDateTime.of(date, LocalTime.of(7, 0)),
+				LocalDateTime.of(date, LocalTime.of(11, 0)),
+				new HashSet<>(Arrays.asList(john, jane)));
+		assertThat(result).hasTimeSlots(expectedTimeSlot);
+	}
+	
+	@Test
+	public void findPossibleTimeSlots_4HoursMeetingRequiredJaneAndJack_returnsSeparateSlotsFotJaneAndJack() {
+
+		Scheduler scheduler = new Scheduler();
+		scheduler.add(jack);
+		scheduler.add(jane);
+
+		SchedulerResult result = scheduler.findPossibleTimeSlots(
+				Duration.ofHours(4),
+				periodStart,
+				periodEnd);
+
+		ResultTimeSlot expectedTimeSlot1 = new ResultTimeSlot(
+				LocalDateTime.of(date, LocalTime.of(9, 0)),
+				LocalDateTime.of(date, LocalTime.of(13, 0)),
+				new HashSet<>(Arrays.asList(jack)));
+		ResultTimeSlot expectedTimeSlot2 = new ResultTimeSlot(
+				LocalDateTime.of(date, LocalTime.of(7, 0)),
+				LocalDateTime.of(date, LocalTime.of(11, 0)),
+				new HashSet<>(Arrays.asList(jane)));
+		assertThat(result).hasTimeSlots(expectedTimeSlot1, expectedTimeSlot2);
+	}
+	
+	@Test
+	public void findPossibleTimeSlots_8HoursMeetingRequiredJohnAndJack_returnsTimeSlotForJack() {
+
+		Scheduler scheduler = new Scheduler();
+		scheduler.add(jack);
+		scheduler.add(john);
+
+		SchedulerResult result = scheduler.findPossibleTimeSlots(
+				Duration.ofHours(8),
+				periodStart,
+				periodEnd);
+
+		ResultTimeSlot expectedTimeSlot = new ResultTimeSlot(
+				LocalDateTime.of(date, LocalTime.of(7, 0)),
+				LocalDateTime.of(date, LocalTime.of(15, 0)),
+				new HashSet<>(Arrays.asList(john)));
+		
 		assertThat(result).hasTimeSlots(expectedTimeSlot);
 	}
 

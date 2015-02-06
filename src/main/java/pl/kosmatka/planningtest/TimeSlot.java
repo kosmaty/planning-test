@@ -1,5 +1,6 @@
 package pl.kosmatka.planningtest;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -62,23 +63,28 @@ public class TimeSlot implements Comparable<TimeSlot> {
 
 	public Optional<TimeSlot> intersectionWith(TimeSlot other) {
 		if (this.begin.isBefore(other.end) && this.end.isAfter(other.begin)) {
-			return Optional.of(new TimeSlot(max(begin, other.begin), min(end, other.end)));
+			return Optional.of(new TimeSlot(max(begin, other.begin), min(end,
+					other.end)));
 		}
 		return Optional.empty();
 	}
-	
-	private LocalDateTime min(LocalDateTime first, LocalDateTime second){
-		if (first.isBefore(second)){
+
+	private LocalDateTime min(LocalDateTime first, LocalDateTime second) {
+		if (first.isBefore(second)) {
 			return first;
 		}
 		return second;
 	}
-	
-	private LocalDateTime max(LocalDateTime first, LocalDateTime second){
-		if (first.isAfter(second)){
+
+	private LocalDateTime max(LocalDateTime first, LocalDateTime second) {
+		if (first.isAfter(second)) {
 			return first;
 		}
 		return second;
+	}
+
+	public boolean lastsAtLeast(Duration duration) {
+		return duration.compareTo(Duration.between(begin, end)) <= 0;
 	}
 
 }

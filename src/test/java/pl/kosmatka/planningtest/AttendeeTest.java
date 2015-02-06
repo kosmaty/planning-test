@@ -201,7 +201,7 @@ public class AttendeeTest {
 				LocalDateTime.of(date, WORK_DAY_END));
 		
 		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
-				Duration.ofHours(1),
+				Duration.ofHours(2),
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_END));
 
