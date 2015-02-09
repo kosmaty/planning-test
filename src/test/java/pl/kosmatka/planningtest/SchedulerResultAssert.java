@@ -16,12 +16,6 @@ public class SchedulerResultAssert extends
 		return new SchedulerResultAssert(actual);
 	}
 	
-	public SchedulerResultAssert hasTimeSlots(TimeSlot... timeSlots){
-		isNotNull();
-		Assertions.assertThat(actual.getTimeSlots()).containsOnly(timeSlots);
-		return this;
-	}
-	
 	public SchedulerResultAssert hasTimeSlots(ResultTimeSlot... timeSlots){
 		isNotNull();
 		Assertions.assertThat(actual.getResultTimeSlots()).containsOnly(timeSlots);

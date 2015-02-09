@@ -1,6 +1,5 @@
 package pl.kosmatka.planningtest;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,10 +17,6 @@ public class SchedulerResult {
 		for (ResultTimeSlot resultTimeSlot : resultTimeSlots) {
 			timeSlots.add(resultTimeSlot.getTimeSlot());
 		}
-	}
-
-	public List<TimeSlot> getTimeSlots() {
-		return timeSlots;
 	}
 
 	public SchedulerResultStatus getStatus() {
