@@ -98,7 +98,7 @@ public class Scheduler {
 			LocalDateTime end) {
 		List<Event> events = new ArrayList<Event>();
 		for (Attendee attendee : attendees) {
-			for (TimeSlot timeSlot : attendee.findFreeTimeSlots(duration,
+			for (ResultTimeSlot timeSlot : attendee.findFreeTimeSlots(duration,
 					begin, end)) {
 				events.add(new Event(timeSlot.getBegin(), attendee,
 						EventType.PERIOD_BEGIN));
@@ -147,8 +147,8 @@ public class Scheduler {
 
 	private ResultTimeSlot mergeItems(ResultTimeSlot currentItem,
 			ResultTimeSlot nextItem) {
-		if (!currentItem.getTimeSlot().getEnd()
-				.isEqual(nextItem.getTimeSlot().getBegin())) {
+		if (!currentItem.getEnd()
+				.isEqual(nextItem.getBegin())) {
 			return currentItem;
 		}
 
@@ -159,8 +159,8 @@ public class Scheduler {
 			return currentItem;
 		}
 
-		return new ResultTimeSlot(currentItem.getTimeSlot().getBegin(),
-				nextItem.getTimeSlot().getEnd(), intersection);
+		return new ResultTimeSlot(currentItem.getBegin(),
+				nextItem.getEnd(), intersection);
 	}
 
 	private List<ResultTimeSlot> findTimeSlotsOfDuration(

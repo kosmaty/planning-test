@@ -11,56 +11,41 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class ResultTimeSlot {
 
-	private TimeSlot internalTimeSlot;
 	private Set<Attendee> attendees;
+	private LocalDateTime begin;
+	private LocalDateTime end;
 
 	public ResultTimeSlot(LocalDateTime begin, LocalDateTime end,
 			Set<Attendee> attendees) {
 		this.attendees = attendees;
-		this.internalTimeSlot = new TimeSlot(begin, end);
+		this.begin = begin;
+		this.end = end;
 	}
 
 	public ResultTimeSlot(LocalDateTime begin, LocalDateTime end,
 			Attendee attendee) {
-		this.attendees = Collections.singleton(attendee);
-		this.internalTimeSlot = new TimeSlot(begin, end);
-	}
-
-	public ResultTimeSlot(TimeSlot timeSlot, Attendee attendee) {
-		this.attendees = Collections.singleton(attendee);
-		this.internalTimeSlot = timeSlot;
-	}
-
-	public ResultTimeSlot(TimeSlot timeSlot,
-			Set<Attendee> attendees) {
-		this.attendees = attendees;
-		this.internalTimeSlot = timeSlot;
-	}
-
-	TimeSlot getTimeSlot() {
-		return internalTimeSlot;
+		this(begin, end, Collections.singleton(attendee));
 	}
 
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder()
 				.append(attendees)
-				.append(internalTimeSlot)
+				.append(begin)
+				.append(end)
 				.toHashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
 		if (!(obj instanceof ResultTimeSlot)) {
 			return false;
 		}
 		ResultTimeSlot other = (ResultTimeSlot) obj;
 		return new EqualsBuilder()
 				.append(attendees, other.attendees)
-				.append(internalTimeSlot, other.internalTimeSlot)
+				.append(begin, other.begin)
+				.append(end, other.end)
 				.isEquals();
 	}
 
@@ -75,13 +60,22 @@ public class ResultTimeSlot {
 	@Override
 	public String toString() {
 		return new ToStringBuilder(this)
-				.append(internalTimeSlot)
+				.append(begin)
+				.append(end)
 				.append(attendees)
 				.toString();
 	}
 
 	public boolean lastsAtLeast(Duration duration) {
-		return internalTimeSlot.lastsAtLeast(duration);
+		return duration.compareTo(Duration.between(begin, end)) <= 0;
+	}
+	
+	LocalDateTime getBegin(){
+		return begin;
+	}
+	
+	LocalDateTime getEnd(){
+		return end;
 	}
 
 }

@@ -19,7 +19,7 @@ public class Attendee {
 	private String name;
 	private LocalTime workDayStart;
 	private LocalTime workDayEnd;
-	private SortedSet<TimeSlot> scheduledMeetings = new TreeSet<>();
+	private SortedSet<Meeting> scheduledMeetings = new TreeSet<>();
 
 	int meetingsCount = 0;
 
@@ -31,14 +31,14 @@ public class Attendee {
 
 	public void addMeeting(LocalDateTime meettingStart,
 			LocalDateTime meettingEnd) {
-		scheduledMeetings.add(new TimeSlot(meettingStart, meettingEnd));
+		scheduledMeetings.add(new Meeting(meettingStart, meettingEnd));
 
 	}
 
-	public List<TimeSlot> findFreeTimeSlots(Duration duration,
+	public List<ResultTimeSlot> findFreeTimeSlots(Duration duration,
 			LocalDateTime begin, LocalDateTime end) {
 
-		List<TimeSlot> timeSlots = new ArrayList<TimeSlot>();
+		List<ResultTimeSlot> timeSlots = new ArrayList<>();
 
 		for (LocalDate currentDate = begin.toLocalDate(); currentDate
 				.minusDays(
@@ -48,13 +48,13 @@ public class Attendee {
 					workDayStart);
 			LocalDateTime currentWorkDayEnd = LocalDateTime.of(currentDate,
 					workDayEnd);
-			SortedSet<TimeSlot> currentDayMeetings = scheduledMeetings.subSet(
-					new TimeSlot(currentWorkDayStart, currentWorkDayStart),
-					new TimeSlot(currentWorkDayEnd, currentWorkDayEnd));
+			SortedSet<Meeting> currentDayMeetings = scheduledMeetings.subSet(
+					new Meeting(currentWorkDayStart, currentWorkDayStart),
+					new Meeting(currentWorkDayEnd, currentWorkDayEnd));
 
 			if (currentDayMeetings.isEmpty()) {
 				timeSlots.add(
-						new TimeSlot(currentWorkDayStart, currentWorkDayEnd));
+						new ResultTimeSlot(currentWorkDayStart, currentWorkDayEnd, this));
 				continue;
 			}
 
@@ -75,11 +75,11 @@ public class Attendee {
 						timeSlotEnd);
 			}
 
-			Iterator<TimeSlot> iterator = currentDayMeetings.iterator();
-			TimeSlot currentMeeting = iterator.next();
+			Iterator<Meeting> iterator = currentDayMeetings.iterator();
+			Meeting currentMeeting = iterator.next();
 
 			while (iterator.hasNext()) {
-				TimeSlot nextMeeting = iterator.next();
+				Meeting nextMeeting = iterator.next();
 				LocalDateTime timeSlotStart = currentMeeting.getEnd();
 				LocalDateTime timeSlotEnd = nextMeeting.getBegin();
 				addTimeSlotIfBigEnough(duration, timeSlots, timeSlotStart,
@@ -87,17 +87,17 @@ public class Attendee {
 				currentMeeting = nextMeeting;
 			}
 		}
-
+		
 		return timeSlots;
 
 	}
 
 	private void addTimeSlotIfBigEnough(Duration duration,
-			List<TimeSlot> timeSlots, LocalDateTime timeSlotStart,
+			List<ResultTimeSlot> timeSlots, LocalDateTime timeSlotStart,
 			LocalDateTime timeSlotEnd) {
 		if (Duration.between(timeSlotStart, timeSlotEnd)
 				.compareTo(duration) >= 0) {
-			timeSlots.add(new TimeSlot(timeSlotStart, timeSlotEnd));
+			timeSlots.add(new ResultTimeSlot(timeSlotStart, timeSlotEnd, this));
 		}
 	}
 
