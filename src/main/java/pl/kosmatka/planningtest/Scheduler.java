@@ -122,7 +122,7 @@ public class Scheduler {
 					|| isLastTimeSlot(timeSlots, i)) {
 				resultItems.add(currentItem);
 			} else {
-				resultItems.add(mergeItems(currentItem, nextTimeSlot(timeSlots, i)));
+				resultItems.add(currentItem.join(nextTimeSlot(timeSlots, i)));
 			}
 		}
 		return resultItems;
@@ -143,24 +143,6 @@ public class Scheduler {
 	private int maxAttendeesCountOf(List<ResultTimeSlot> timeSlots) {
 		return timeSlots.stream().mapToInt(x -> x.attendeesCount())
 				.max().orElse(0);
-	}
-
-	private ResultTimeSlot mergeItems(ResultTimeSlot currentItem,
-			ResultTimeSlot nextItem) {
-		if (!currentItem.getEnd()
-				.isEqual(nextItem.getBegin())) {
-			return currentItem;
-		}
-
-		Set<Attendee> intersection = new HashSet<>(currentItem.getAttendees());
-		intersection.retainAll(nextItem.getAttendees());
-		if (intersection.size() != Math.min(currentItem.attendeesCount(),
-				nextItem.attendeesCount())) {
-			return currentItem;
-		}
-
-		return new ResultTimeSlot(currentItem.getBegin(),
-				nextItem.getEnd(), intersection);
 	}
 
 	private List<ResultTimeSlot> findTimeSlotsOfDuration(

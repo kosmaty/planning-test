@@ -3,6 +3,7 @@ package pl.kosmatka.planningtest;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -77,5 +78,22 @@ public class ResultTimeSlot {
 	LocalDateTime getEnd(){
 		return end;
 	}
+	
+	
+	ResultTimeSlot join(ResultTimeSlot other){
+		if (!end.isEqual(other.begin)) {
+			return this;
+		}
 
+		Set<Attendee> commonAttendees = new HashSet<>(attendees);
+		commonAttendees.retainAll(other.attendees);
+		if (commonAttendees.size() != Math.min(this.attendeesCount(),
+				other.attendeesCount())) {
+			return this;
+		}
+
+		return new ResultTimeSlot(this.begin,
+				other.end, commonAttendees);
+	}
+	
 }
