@@ -40,19 +40,45 @@ public class Scheduler {
 	}
 
 
-	private SchedulerResultStatus calculateStatus(
-			List<TimeSlot> possibleTimeSlots) {
-		SchedulerResultStatus status = SchedulerResultStatus.OK;
-		if (!possibleTimeSlots.isEmpty() &&
-				possibleTimeSlots.get(0).attendeesCount() == attendees.size()) {
-			status = SchedulerResultStatus.OK;
-		} else {
-			status = SchedulerResultStatus.NOT_OK;
+	private List<Event> prepareEvents(Duration duration, LocalDateTime begin,
+			LocalDateTime end) {
+		List<Event> events = new ArrayList<Event>();
+		for (Attendee attendee : attendees) {
+			for (TimeSlot timeSlot : attendee.findFreeTimeSlots(duration,
+					begin, end)) {
+				events.add(new Event(timeSlot.getBegin(), attendee,
+						EventType.PERIOD_BEGIN));
+				events.add(new Event(timeSlot.getEnd(), attendee,
+						EventType.PERIOD_END));
+			}
 		}
-		return status;
+	
+		events.sort((x, y) -> x.time.compareTo(y.time));
+		return events;
 	}
 
+	private List<TimeSlot> createTimeSlotsFrom(List<Event> events) {
+		Set<Attendee> previousAttendees = new HashSet<Attendee>();
+		Event previousEvent = null;
+		List<TimeSlot> items = new ArrayList<TimeSlot>();
+		for (Event currentEvent : events) {
+			Set<Attendee> attendees = new HashSet<Attendee>(previousAttendees);
+			if (currentEvent.type == EventType.PERIOD_BEGIN) {
+				attendees.add(currentEvent.attendee);
+			} else {
+				attendees.remove(currentEvent.attendee);
+			}
 	
+			if (!previousAttendees.isEmpty()) {
+				items.add(new TimeSlot(previousEvent.time, currentEvent.time,
+						previousAttendees));
+			}
+			previousEvent = currentEvent;
+			previousAttendees = attendees;
+		}
+		return items;
+	}
+
 	private List<TimeSlot> findResultTimeSlots(Duration duration,
 			List<TimeSlot> baseTimeSlots) {
 		List<TimeSlot> resultTimeSlots = new ArrayList<TimeSlot>();
@@ -70,45 +96,6 @@ public class Scheduler {
 			}
 		}
 		return resultTimeSlots;
-	}
-
-	private List<TimeSlot> createTimeSlotsFrom(List<Event> events) {
-		Set<Attendee> previousAttendees = new HashSet<Attendee>();
-		Event previousEvent = null;
-		List<TimeSlot> items = new ArrayList<TimeSlot>();
-		for (Event currentEvent : events) {
-			Set<Attendee> attendees = new HashSet<Attendee>(previousAttendees);
-			if (currentEvent.type == EventType.PERIOD_BEGIN) {
-				attendees.add(currentEvent.attendee);
-			} else {
-				attendees.remove(currentEvent.attendee);
-			}
-
-			if (!previousAttendees.isEmpty()) {
-				items.add(new TimeSlot(previousEvent.time, currentEvent.time,
-						previousAttendees));
-			}
-			previousEvent = currentEvent;
-			previousAttendees = attendees;
-		}
-		return items;
-	}
-
-	private List<Event> prepareEvents(Duration duration, LocalDateTime begin,
-			LocalDateTime end) {
-		List<Event> events = new ArrayList<Event>();
-		for (Attendee attendee : attendees) {
-			for (TimeSlot timeSlot : attendee.findFreeTimeSlots(duration,
-					begin, end)) {
-				events.add(new Event(timeSlot.getBegin(), attendee,
-						EventType.PERIOD_BEGIN));
-				events.add(new Event(timeSlot.getEnd(), attendee,
-						EventType.PERIOD_END));
-			}
-		}
-
-		events.sort((x, y) -> x.time.compareTo(y.time));
-		return events;
 	}
 
 	private List<TimeSlot> mergeTimeSlotsWithMostAttendees(
@@ -159,6 +146,22 @@ public class Scheduler {
 		return items.stream()
 				.filter(ts -> ts.lastsAtLeast(duration))
 				.collect(Collectors.toList());
+	}
+
+	private SchedulerResultStatus calculateStatus(
+			List<TimeSlot> possibleTimeSlots) {
+		SchedulerResultStatus status = SchedulerResultStatus.OK;
+		if (allAttendeePresent(possibleTimeSlots)) {
+			status = SchedulerResultStatus.OK;
+		} else {
+			status = SchedulerResultStatus.NOT_OK;
+		}
+		return status;
+	}
+
+	private boolean allAttendeePresent(List<TimeSlot> possibleTimeSlots) {
+		return !possibleTimeSlots.isEmpty() &&
+				possibleTimeSlots.get(0).attendeesCount() == attendees.size();
 	}
 
 }
