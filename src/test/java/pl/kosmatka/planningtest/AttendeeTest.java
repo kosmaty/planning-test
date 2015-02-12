@@ -25,12 +25,12 @@ public class AttendeeTest {
 		Attendee attendee = createAttendee();
 		LocalDate date = LocalDate.of(2000, Month.JANUARY, 1);
 
-		List<ResultTimeSlot> timeSlots = attendee.findFreeTimeSlots(
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
 				Duration.ofHours(1),
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_END));
 
-		ResultTimeSlot wholeWorkingDayTimeSlot = new ResultTimeSlot(LocalDateTime.of(date,
+		TimeSlot wholeWorkingDayTimeSlot = new TimeSlot(LocalDateTime.of(date,
 				WORK_DAY_START), LocalDateTime.of(date, WORK_DAY_END), attendee);
 		Assertions.assertThat(timeSlots).containsExactly(wholeWorkingDayTimeSlot);
 
@@ -44,7 +44,7 @@ public class AttendeeTest {
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_END));
 
-		List<ResultTimeSlot> timeSlots = attendee.findFreeTimeSlots(
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
 				Duration.ofHours(1),
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_END));
@@ -64,12 +64,12 @@ public class AttendeeTest {
 				LocalDateTime.of(date, WORK_DAY_START).plus(
 						scheduledMeetingDuration));
 
-		List<ResultTimeSlot> timeSlots = attendee.findFreeTimeSlots(
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
 				Duration.ofHours(1),
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_END));
 
-		ResultTimeSlot secondHalfDayTimeSlot = new ResultTimeSlot(LocalDateTime.of(date,
+		TimeSlot secondHalfDayTimeSlot = new TimeSlot(LocalDateTime.of(date,
 				WORK_DAY_START).plus(scheduledMeetingDuration),
 				LocalDateTime.of(date, WORK_DAY_END), attendee);
 		Assertions.assertThat(timeSlots).containsExactly(secondHalfDayTimeSlot);
@@ -87,12 +87,12 @@ public class AttendeeTest {
 						scheduledMeetingDuration),
 				LocalDateTime.of(date, WORK_DAY_END));
 
-		List<ResultTimeSlot> timeSlots = attendee.findFreeTimeSlots(
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
 				Duration.ofHours(1),
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_END));
 
-		ResultTimeSlot firstHalfDayTimeSlot = new ResultTimeSlot(
+		TimeSlot firstHalfDayTimeSlot = new TimeSlot(
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_END).minus(
 						scheduledMeetingDuration), attendee);
@@ -109,16 +109,16 @@ public class AttendeeTest {
 				LocalDateTime.of(date, WORK_DAY_START).plusHours(2),
 				LocalDateTime.of(date, WORK_DAY_END).minusHours(2));
 
-		List<ResultTimeSlot> timeSlots = attendee.findFreeTimeSlots(
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
 				Duration.ofHours(1),
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_END));
 
-		ResultTimeSlot firstTimeSlot = new ResultTimeSlot(
+		TimeSlot firstTimeSlot = new TimeSlot(
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_START).plusHours(2), attendee);
 
-		ResultTimeSlot secondTimeSlot = new ResultTimeSlot(
+		TimeSlot secondTimeSlot = new TimeSlot(
 				LocalDateTime.of(date, WORK_DAY_END).minusHours(2),
 				LocalDateTime.of(date, WORK_DAY_END), attendee);
 		Assertions.assertThat(timeSlots).containsOnly(firstTimeSlot,
@@ -139,12 +139,12 @@ public class AttendeeTest {
 				LocalDateTime.of(date, WORK_DAY_END).minusHours(2),
 				LocalDateTime.of(date, WORK_DAY_END));
 		
-		List<ResultTimeSlot> timeSlots = attendee.findFreeTimeSlots(
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
 				Duration.ofHours(1),
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_END));
 
-		ResultTimeSlot middleDayTimeSlot = new ResultTimeSlot(
+		TimeSlot middleDayTimeSlot = new TimeSlot(
 				LocalDateTime.of(date, WORK_DAY_START).plusHours(2),
 				LocalDateTime.of(date, WORK_DAY_END).minusHours(2), attendee);
 
@@ -162,7 +162,7 @@ public class AttendeeTest {
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_END).minusHours(1));
 		
-		List<ResultTimeSlot> timeSlots = attendee.findFreeTimeSlots(
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
 				Duration.ofHours(2),
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_END));
@@ -179,7 +179,7 @@ public class AttendeeTest {
 				LocalDateTime.of(date, WORK_DAY_START).plusHours(1),
 				LocalDateTime.of(date, WORK_DAY_END));
 		
-		List<ResultTimeSlot> timeSlots = attendee.findFreeTimeSlots(
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
 				Duration.ofHours(2),
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_END));
@@ -200,7 +200,7 @@ public class AttendeeTest {
 				LocalDateTime.of(date, WORK_DAY_END).minusHours(3),
 				LocalDateTime.of(date, WORK_DAY_END));
 		
-		List<ResultTimeSlot> timeSlots = attendee.findFreeTimeSlots(
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
 				Duration.ofHours(2),
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_END));
@@ -218,7 +218,7 @@ public class AttendeeTest {
 				LocalDateTime.of(date, WORK_DAY_START),
 				LocalDateTime.of(date, WORK_DAY_END));
 
-		List<ResultTimeSlot> timeSlots = attendee.findFreeTimeSlots(
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
 				Duration.ofHours(1),
 				LocalDateTime.of(date, LocalTime.MIN),
 				LocalDateTime.of(date, LocalTime.MAX));
@@ -232,12 +232,12 @@ public class AttendeeTest {
 		Attendee attendee = createAttendee();
 		LocalDate date = LocalDate.of(2000, Month.JANUARY, 1);
 
-		List<ResultTimeSlot> timeSlots = attendee.findFreeTimeSlots(
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
 				Duration.ofHours(1),
 				LocalDateTime.of(date, LocalTime.MIN),
 				LocalDateTime.of(date, LocalTime.MAX));
 		
-		ResultTimeSlot wholeWorkingDayTimeSlot = new ResultTimeSlot(LocalDateTime.of(date,
+		TimeSlot wholeWorkingDayTimeSlot = new TimeSlot(LocalDateTime.of(date,
 				WORK_DAY_START), LocalDateTime.of(date, WORK_DAY_END), attendee);
 
 		Assertions.assertThat(timeSlots).containsOnly(wholeWorkingDayTimeSlot);
@@ -250,15 +250,15 @@ public class AttendeeTest {
 		LocalDate beginDate = LocalDate.of(2000, Month.JANUARY, 1);
 		LocalDate endDate = beginDate.plusDays(1);
 
-		List<ResultTimeSlot> timeSlots = attendee.findFreeTimeSlots(
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
 				Duration.ofHours(1),
 				LocalDateTime.of(beginDate, LocalTime.MIN),
 				LocalDateTime.of(endDate, LocalTime.MAX));
 
-		ResultTimeSlot firstWorkingDayTimeSlot = new ResultTimeSlot(
+		TimeSlot firstWorkingDayTimeSlot = new TimeSlot(
 				LocalDateTime.of(beginDate, WORK_DAY_START),
 				LocalDateTime.of(beginDate, WORK_DAY_END), attendee);
-		ResultTimeSlot secondWorkingDayTimeSlot = new ResultTimeSlot(
+		TimeSlot secondWorkingDayTimeSlot = new TimeSlot(
 				LocalDateTime.of(endDate, WORK_DAY_START),
 				LocalDateTime.of(endDate, WORK_DAY_END), attendee);
 
@@ -278,12 +278,12 @@ public class AttendeeTest {
 				LocalDateTime.of(beginDate, WORK_DAY_START), 
 				LocalDateTime.of(beginDate, WORK_DAY_END));
 
-		List<ResultTimeSlot> timeSlots = attendee.findFreeTimeSlots(
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
 				Duration.ofHours(1),
 				LocalDateTime.of(beginDate, LocalTime.MIN),
 				LocalDateTime.of(endDate, LocalTime.MAX));
 		
-		ResultTimeSlot secondWorkingDayTimeSlot = new ResultTimeSlot(
+		TimeSlot secondWorkingDayTimeSlot = new TimeSlot(
 				LocalDateTime.of(endDate, WORK_DAY_START),
 				LocalDateTime.of(endDate, WORK_DAY_END), attendee);
 
@@ -302,12 +302,12 @@ public class AttendeeTest {
 				LocalDateTime.of(endDate, WORK_DAY_START), 
 				LocalDateTime.of(endDate, WORK_DAY_END));
 
-		List<ResultTimeSlot> timeSlots = attendee.findFreeTimeSlots(
+		List<TimeSlot> timeSlots = attendee.findFreeTimeSlots(
 				Duration.ofHours(1),
 				LocalDateTime.of(beginDate, LocalTime.MIN),
 				LocalDateTime.of(endDate, LocalTime.MAX));
 		
-		ResultTimeSlot firstWorkingDayTimeSlot = new ResultTimeSlot(
+		TimeSlot firstWorkingDayTimeSlot = new TimeSlot(
 				LocalDateTime.of(beginDate, WORK_DAY_START),
 				LocalDateTime.of(beginDate, WORK_DAY_END), attendee);
 

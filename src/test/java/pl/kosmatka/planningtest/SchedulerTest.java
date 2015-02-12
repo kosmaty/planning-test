@@ -80,7 +80,7 @@ public class SchedulerTest {
 		LocalDateTime workDayStart = LocalDateTime.of(date,
 				john.getWorkDayStart());
 		LocalDateTime workDayEnd = LocalDateTime.of(date, john.getWorkDayEnd());
-		ResultTimeSlot expectedTimeSlot = new ResultTimeSlot(workDayStart,
+		TimeSlot expectedTimeSlot = new TimeSlot(workDayStart,
 				workDayEnd,
 				Collections.singleton(john));
 		assertThat(result).hasTimeSlots(expectedTimeSlot).hasStatus(SchedulerResultStatus.OK);
@@ -101,7 +101,7 @@ public class SchedulerTest {
 		LocalDateTime workDayStart = LocalDateTime.of(date,
 				john.getWorkDayStart());
 		LocalDateTime workDayEnd = LocalDateTime.of(date, john.getWorkDayEnd());
-		ResultTimeSlot expectedTimeSlot = new ResultTimeSlot(workDayStart,
+		TimeSlot expectedTimeSlot = new TimeSlot(workDayStart,
 				workDayEnd.minusHours(4),
 				new HashSet<>(Arrays.asList(john, jane)));
 		assertThat(result)
@@ -122,7 +122,7 @@ public class SchedulerTest {
 				periodStart,
 				periodEnd);
 
-		ResultTimeSlot expectedTimeSlot = new ResultTimeSlot(
+		TimeSlot expectedTimeSlot = new TimeSlot(
 				LocalDateTime.of(date, LocalTime.of(9, 0)),
 				LocalDateTime.of(date, LocalTime.of(11, 0)),
 				new HashSet<>(Arrays.asList(jane, jack, john)));
@@ -142,7 +142,7 @@ public class SchedulerTest {
 				periodStart,
 				periodEnd);
 
-		ResultTimeSlot expectedTimeSlot = new ResultTimeSlot(
+		TimeSlot expectedTimeSlot = new TimeSlot(
 				LocalDateTime.of(date, LocalTime.of(7, 0)),
 				LocalDateTime.of(date, LocalTime.of(15, 0)),
 				new HashSet<>(Arrays.asList(john)));
@@ -161,7 +161,7 @@ public class SchedulerTest {
 				periodStart,
 				periodEnd);
 
-		ResultTimeSlot expectedTimeSlot = new ResultTimeSlot(
+		TimeSlot expectedTimeSlot = new TimeSlot(
 				LocalDateTime.of(date, LocalTime.of(7, 0)),
 				LocalDateTime.of(date, LocalTime.of(11, 0)),
 				new HashSet<>(Arrays.asList(john, jane)));
@@ -180,11 +180,11 @@ public class SchedulerTest {
 				periodStart,
 				periodEnd);
 
-		ResultTimeSlot expectedTimeSlot1 = new ResultTimeSlot(
+		TimeSlot expectedTimeSlot1 = new TimeSlot(
 				LocalDateTime.of(date, LocalTime.of(9, 0)),
 				LocalDateTime.of(date, LocalTime.of(13, 0)),
 				new HashSet<>(Arrays.asList(jack)));
-		ResultTimeSlot expectedTimeSlot2 = new ResultTimeSlot(
+		TimeSlot expectedTimeSlot2 = new TimeSlot(
 				LocalDateTime.of(date, LocalTime.of(7, 0)),
 				LocalDateTime.of(date, LocalTime.of(11, 0)),
 				new HashSet<>(Arrays.asList(jane)));
@@ -203,7 +203,7 @@ public class SchedulerTest {
 				periodStart,
 				periodEnd);
 
-		ResultTimeSlot expectedTimeSlot = new ResultTimeSlot(
+		TimeSlot expectedTimeSlot = new TimeSlot(
 				LocalDateTime.of(date, LocalTime.of(7, 0)),
 				LocalDateTime.of(date, LocalTime.of(15, 0)),
 				new HashSet<>(Arrays.asList(john)));
