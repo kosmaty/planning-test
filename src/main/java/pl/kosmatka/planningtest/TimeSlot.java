@@ -10,20 +10,20 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-public class ResultTimeSlot {
+public class TimeSlot {
 
 	private Set<Attendee> attendees;
 	private LocalDateTime begin;
 	private LocalDateTime end;
 
-	public ResultTimeSlot(LocalDateTime begin, LocalDateTime end,
+	public TimeSlot(LocalDateTime begin, LocalDateTime end,
 			Set<Attendee> attendees) {
 		this.attendees = attendees;
 		this.begin = begin;
 		this.end = end;
 	}
 
-	public ResultTimeSlot(LocalDateTime begin, LocalDateTime end,
+	public TimeSlot(LocalDateTime begin, LocalDateTime end,
 			Attendee attendee) {
 		this(begin, end, Collections.singleton(attendee));
 	}
@@ -39,10 +39,10 @@ public class ResultTimeSlot {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (!(obj instanceof ResultTimeSlot)) {
+		if (!(obj instanceof TimeSlot)) {
 			return false;
 		}
-		ResultTimeSlot other = (ResultTimeSlot) obj;
+		TimeSlot other = (TimeSlot) obj;
 		return new EqualsBuilder()
 				.append(attendees, other.attendees)
 				.append(begin, other.begin)
@@ -60,40 +60,49 @@ public class ResultTimeSlot {
 
 	@Override
 	public String toString() {
-		return new ToStringBuilder(this)
-				.append(begin)
-				.append(end)
-				.append(attendees)
-				.toString();
+		return new ToStringBuilder(this).append(begin).append(end)
+				.append(attendees).toString();
 	}
 
 	public boolean lastsAtLeast(Duration duration) {
 		return duration.compareTo(Duration.between(begin, end)) <= 0;
 	}
-	
-	LocalDateTime getBegin(){
+
+	LocalDateTime getBegin() {
 		return begin;
 	}
-	
-	LocalDateTime getEnd(){
+
+	LocalDateTime getEnd() {
 		return end;
 	}
-	
-	
-	ResultTimeSlot join(ResultTimeSlot other){
-		if (!end.isEqual(other.begin)) {
+
+	TimeSlot join(TimeSlot other) {
+		if (!isAdjacentTo(other)) {
 			return this;
 		}
 
+		Set<Attendee> commonAttendees = findAttendeesInCommonWith(other);
+		if (!enoughCommonAttendees(other, commonAttendees)) {
+			return this;
+		}
+
+		return new TimeSlot(this.begin, other.end, commonAttendees);
+	}
+
+	private boolean enoughCommonAttendees(TimeSlot other,
+			Set<Attendee> commonAttendees) {
+		return commonAttendees.size() == Math.min(this.attendeesCount(),
+				other.attendeesCount());
+	}
+
+	private Set<Attendee> findAttendeesInCommonWith(TimeSlot other) {
 		Set<Attendee> commonAttendees = new HashSet<>(attendees);
 		commonAttendees.retainAll(other.attendees);
-		if (commonAttendees.size() != Math.min(this.attendeesCount(),
-				other.attendeesCount())) {
-			return this;
-		}
-
-		return new ResultTimeSlot(this.begin,
-				other.end, commonAttendees);
+		return commonAttendees;
 	}
-	
+
+	private boolean isAdjacentTo(TimeSlot otherTimeSlot) {
+		return end.isEqual(otherTimeSlot.begin);
+	}
+
 }

@@ -5,9 +5,9 @@ import java.util.List;
 public class SchedulerResult {
 
 	private SchedulerResultStatus status;
-	private List<ResultTimeSlot> resultTimeSlots;
+	private List<TimeSlot> resultTimeSlots;
 
-	public SchedulerResult(List<ResultTimeSlot> resultTimeSlots,
+	public SchedulerResult(List<TimeSlot> resultTimeSlots,
 			SchedulerResultStatus status) {
 		this.resultTimeSlots = resultTimeSlots;
 		this.status = status;
@@ -17,7 +17,7 @@ public class SchedulerResult {
 		return status;
 	}
 
-	public List<ResultTimeSlot> getResultTimeSlots() {
+	public List<TimeSlot> getResultTimeSlots() {
 		return resultTimeSlots;
 	}
 

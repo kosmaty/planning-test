@@ -19,17 +19,31 @@ public class Scheduler {
 	public SchedulerResult findPossibleTimeSlots(Duration duration,
 			LocalDateTime begin, LocalDateTime end) {
 
-		List<ResultTimeSlot> possibleTimeSlots = findBestTimeSlots(
+		List<TimeSlot> possibleTimeSlots = findBestTimeSlots(
 				duration, begin, end);
 
 		SchedulerResultStatus status = calculateStatus(possibleTimeSlots);
 		return new SchedulerResult(possibleTimeSlots, status);
 	}
+	
+	private List<TimeSlot> findBestTimeSlots(Duration duration,
+			LocalDateTime begin, LocalDateTime end) {
+
+		List<Event> events = prepareEvents(duration, begin, end);
+
+		List<TimeSlot> baseTimeSlots = createTimeSlotsFrom(events);
+
+		List<TimeSlot> resultTimeSlots = findResultTimeSlots(duration,
+				baseTimeSlots);
+
+		return resultTimeSlots;
+	}
+
 
 	private SchedulerResultStatus calculateStatus(
-			List<ResultTimeSlot> possibleTimeSlots) {
+			List<TimeSlot> possibleTimeSlots) {
 		SchedulerResultStatus status = SchedulerResultStatus.OK;
-		if (!possibleTimeSlots.isEmpty() && 
+		if (!possibleTimeSlots.isEmpty() &&
 				possibleTimeSlots.get(0).attendeesCount() == attendees.size()) {
 			status = SchedulerResultStatus.OK;
 		} else {
@@ -38,27 +52,13 @@ public class Scheduler {
 		return status;
 	}
 
-	private List<ResultTimeSlot> findBestTimeSlots(Duration duration,
-			LocalDateTime begin, LocalDateTime end) {
+	
+	private List<TimeSlot> findResultTimeSlots(Duration duration,
+			List<TimeSlot> baseTimeSlots) {
+		List<TimeSlot> resultTimeSlots = new ArrayList<TimeSlot>();
 
-		List<Event> events = prepareEvents(duration, begin, end);
-
-		List<ResultTimeSlot> baseTimeSlots = createTimeSlotsFrom(events);
-
-		List<ResultTimeSlot> resultTimeSlots = findResultTimeSlots(duration,
-				baseTimeSlots);
-
-		return resultTimeSlots;
-	}
-
-	private List<ResultTimeSlot> findResultTimeSlots(Duration duration,
-			List<ResultTimeSlot> baseTimeSlots) {
-		List<ResultTimeSlot> resultTimeSlots = new ArrayList<ResultTimeSlot>();
-
-		
 		while (resultTimeSlots.isEmpty() && !baseTimeSlots.isEmpty()) {
 			resultTimeSlots = findTimeSlotsOfDuration(baseTimeSlots, duration);
-			
 
 			if (resultTimeSlots.isEmpty()) {
 				baseTimeSlots = mergeTimeSlotsWithMostAttendees(baseTimeSlots);
@@ -72,23 +72,23 @@ public class Scheduler {
 		return resultTimeSlots;
 	}
 
-	private List<ResultTimeSlot> createTimeSlotsFrom(List<Event> events) {
+	private List<TimeSlot> createTimeSlotsFrom(List<Event> events) {
 		Set<Attendee> previousAttendees = new HashSet<Attendee>();
 		Event previousEvent = null;
-		List<ResultTimeSlot> items = new ArrayList<ResultTimeSlot>();
-		for (Event event : events) {
+		List<TimeSlot> items = new ArrayList<TimeSlot>();
+		for (Event currentEvent : events) {
 			Set<Attendee> attendees = new HashSet<Attendee>(previousAttendees);
-			if (event.type == EventType.PERIOD_BEGIN) {
-				attendees.add(event.attendee);
+			if (currentEvent.type == EventType.PERIOD_BEGIN) {
+				attendees.add(currentEvent.attendee);
 			} else {
-				attendees.remove(event.attendee);
+				attendees.remove(currentEvent.attendee);
 			}
 
-			if (!previousAttendees.isEmpty() && previousEvent != null) {
-				items.add(new ResultTimeSlot(previousEvent.time, event.time,
+			if (!previousAttendees.isEmpty()) {
+				items.add(new TimeSlot(previousEvent.time, currentEvent.time,
 						previousAttendees));
 			}
-			previousEvent = event;
+			previousEvent = currentEvent;
 			previousAttendees = attendees;
 		}
 		return items;
@@ -98,7 +98,7 @@ public class Scheduler {
 			LocalDateTime end) {
 		List<Event> events = new ArrayList<Event>();
 		for (Attendee attendee : attendees) {
-			for (ResultTimeSlot timeSlot : attendee.findFreeTimeSlots(duration,
+			for (TimeSlot timeSlot : attendee.findFreeTimeSlots(duration,
 					begin, end)) {
 				events.add(new Event(timeSlot.getBegin(), attendee,
 						EventType.PERIOD_BEGIN));
@@ -111,14 +111,21 @@ public class Scheduler {
 		return events;
 	}
 
-	private List<ResultTimeSlot> mergeTimeSlotsWithMostAttendees(
-			List<ResultTimeSlot> timeSlots) {
+	private List<TimeSlot> mergeTimeSlotsWithMostAttendees(
+			List<TimeSlot> timeSlots) {
 		int maxAttendees = maxAttendeesCountOf(timeSlots);
 
-		List<ResultTimeSlot> resultItems = new ArrayList<>();
+		List<TimeSlot> resultItems = mergeTimeSlotsWithAttendeesNo(
+				timeSlots, maxAttendees);
+		return resultItems;
+	}
+
+	private List<TimeSlot> mergeTimeSlotsWithAttendeesNo(
+			List<TimeSlot> timeSlots, int attendeesNo) {
+		List<TimeSlot> resultItems = new ArrayList<>();
 		for (int i = 0; i < timeSlots.size(); i++) {
-			ResultTimeSlot currentItem = timeSlots.get(i);
-			if (shouldMerge(maxAttendees, currentItem)
+			TimeSlot currentItem = timeSlots.get(i);
+			if (shouldMerge(attendeesNo, currentItem)
 					|| isLastTimeSlot(timeSlots, i)) {
 				resultItems.add(currentItem);
 			} else {
@@ -128,25 +135,27 @@ public class Scheduler {
 		return resultItems;
 	}
 
-	private ResultTimeSlot nextTimeSlot(List<ResultTimeSlot> timeSlots, int i) {
+	private TimeSlot nextTimeSlot(List<TimeSlot> timeSlots, int i) {
 		return timeSlots.get(i + 1);
 	}
 
-	private boolean shouldMerge(int maxAttendees, ResultTimeSlot currentItem) {
+	private boolean shouldMerge(int maxAttendees, TimeSlot currentItem) {
 		return currentItem.attendeesCount() < maxAttendees - 1;
 	}
 
-	private boolean isLastTimeSlot(List<ResultTimeSlot> timeSlots, int i) {
+	private boolean isLastTimeSlot(List<TimeSlot> timeSlots, int i) {
 		return i + 1 == timeSlots.size();
 	}
 
-	private int maxAttendeesCountOf(List<ResultTimeSlot> timeSlots) {
-		return timeSlots.stream().mapToInt(x -> x.attendeesCount())
-				.max().orElse(0);
+	private int maxAttendeesCountOf(List<TimeSlot> timeSlots) {
+		return timeSlots.stream()
+				.mapToInt(timeSlot -> timeSlot.attendeesCount())
+				.max()
+				.orElse(0);
 	}
 
-	private List<ResultTimeSlot> findTimeSlotsOfDuration(
-			List<ResultTimeSlot> items, Duration duration) {
+	private List<TimeSlot> findTimeSlotsOfDuration(
+			List<TimeSlot> items, Duration duration) {
 		return items.stream()
 				.filter(ts -> ts.lastsAtLeast(duration))
 				.collect(Collectors.toList());

@@ -35,10 +35,10 @@ public class Attendee {
 
 	}
 
-	public List<ResultTimeSlot> findFreeTimeSlots(Duration duration,
+	public List<TimeSlot> findFreeTimeSlots(Duration duration,
 			LocalDateTime begin, LocalDateTime end) {
 
-		List<ResultTimeSlot> timeSlots = new ArrayList<>();
+		List<TimeSlot> timeSlots = new ArrayList<>();
 
 		for (LocalDate currentDate = begin.toLocalDate(); currentDate
 				.minusDays(
@@ -54,7 +54,7 @@ public class Attendee {
 
 			if (currentDayMeetings.isEmpty()) {
 				timeSlots.add(
-						new ResultTimeSlot(currentWorkDayStart, currentWorkDayEnd, this));
+						new TimeSlot(currentWorkDayStart, currentWorkDayEnd, this));
 				continue;
 			}
 
@@ -93,11 +93,11 @@ public class Attendee {
 	}
 
 	private void addTimeSlotIfBigEnough(Duration duration,
-			List<ResultTimeSlot> timeSlots, LocalDateTime timeSlotStart,
+			List<TimeSlot> timeSlots, LocalDateTime timeSlotStart,
 			LocalDateTime timeSlotEnd) {
 		if (Duration.between(timeSlotStart, timeSlotEnd)
 				.compareTo(duration) >= 0) {
-			timeSlots.add(new ResultTimeSlot(timeSlotStart, timeSlotEnd, this));
+			timeSlots.add(new TimeSlot(timeSlotStart, timeSlotEnd, this));
 		}
 	}
 
